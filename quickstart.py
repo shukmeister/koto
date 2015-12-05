@@ -226,7 +226,7 @@ def main():
 
     # ListHistory(service, 'me')
 
-    msgs = ListMessagesMatchingQuery(service, "me", "Ross")
+    msgs = ListMessagesMatchingQuery(service, "me", "")
 
     # for x in range (25, 30):
     #     print(msgs[x]['id'])
