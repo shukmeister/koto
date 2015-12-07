@@ -9,7 +9,7 @@ setup(
     license='BSD', #what is BSD license
     author='Ben Shukman',
     author_email='shukipost@gmail.com',
-    description='Track Communications in your Terminal ',
+    description='command line communication tracking',
     long_description=__doc__,
     packages=find_packages(exclude=['tests']), #mebbe change dis
     package_data={'':['configs.txt']}, #mebbe change dis
