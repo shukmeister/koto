@@ -40,6 +40,8 @@ SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Gmail API Python Quickstart'
 
+db_name = 'kotodb'
+
 def get_credentials():
 	"""Gets valid user credentials from storage.
 
@@ -130,14 +132,14 @@ def GetMessage(service, user_id, msg_id):
 #     conn.commit()
 #     conn.close()
 
-def initializeDB(db_name):
+def initializeDB():
 	print ('Initializing database ' + db_name + '...')
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
 	c.execute("CREATE TABLE IF NOT EXISTS people(firstName text, lastName text, type text, email text, UNIQUE(firstName, lastName))")
 	conn.close()
 
-def insertDB(db_name, firstName, lastName):
+def insertDB(firstName, lastName):
 	print ('Inserting ' + firstName + ' ' + lastName + ' into database ' + db_name + '...')
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
@@ -151,7 +153,7 @@ def insertDB(db_name, firstName, lastName):
 	conn.commit()
 	conn.close()
 
-def readDB(db_name):
+def readDB():
 	print ('Reading from database ' + db_name + '...')
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
@@ -159,7 +161,7 @@ def readDB(db_name):
 		print (row)
 	conn.close()
 
-def readDB(db_name, firstName):
+def readDB(firstName):
 	print ('Reading ' + firstName + ' from database ' + db_name + '...')
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
@@ -167,7 +169,7 @@ def readDB(db_name, firstName):
 	print (c.fetchall())
 	conn.close()
 
-def readEmail(db_name, firstName):
+def readEmail(firstName):
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
 	c.execute("SELECT email FROM people WHERE firstName =?", [firstName])
@@ -175,7 +177,7 @@ def readEmail(db_name, firstName):
 	#if multiple, specify ask which one
 	conn.close()
 
-def addEmail(db_name, firstName, email):
+def addEmail(firstName, email):
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
 	c.executemany("UPDATE people SET email=? WHERE firstName=?", [(email, firstName)])
@@ -229,12 +231,12 @@ def idGen(name, date):
 	pass
 
 def main():
-	initializeDB('kotodb')
-	insertDB('kotodb', 'Yana', 'Yudelevich')
-	readDB('kotodb', 'Yana')
-	addEmail('kotodb', 'Yana', 'yanapost@gmail.com')
-	readDB('kotodb', 'Yana')
-	readEmail('kotodb', 'Yana')
+	initializeDB()
+	insertDB('Yana', 'Yudelevich')
+	readDB('Yana')
+	addEmail('Yana', 'yanaspace@gmail.com')
+	readDB('Yana')
+	readEmail('Yana')
 
 	# credentials = get_credentials()
 	# http = credentials.authorize(httplib2.Http())
