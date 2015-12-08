@@ -134,7 +134,7 @@ def initializeDB(db_name):
 	print ('Initializing database ' + db_name + '...')
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
-	c.execute("CREATE TABLE IF NOT EXISTS people(firstName text, lastName text, type text, UNIQUE(firstName, lastName))")
+	c.execute("CREATE TABLE IF NOT EXISTS people(firstName text, lastName text, type text, email text, UNIQUE(firstName, lastName))")
 	conn.close()
 
 def insertDB(db_name, firstName, lastName):
@@ -155,11 +155,38 @@ def readDB(db_name):
 	print ('Reading from database ' + db_name + '...')
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
-	# for row in 
-	# c.execute("SELECT * FROM people"=)
-	# print(c.fetchall())	
 	for row in c.execute("SELECT firstName, lastName FROM people"):
 		print (row)
+	conn.close()
+
+def readDB(db_name, firstName):
+	print ('Reading ' + firstName + ' from database ' + db_name + '...')
+	conn = sqlite3.connect(db_name)
+	c = conn.cursor()
+	c.execute("SELECT * FROM people WHERE firstName =?", [firstName])
+	print (c.fetchall())
+	conn.close()
+
+def readEmail(db_name, firstName):
+	conn = sqlite3.connect(db_name)
+	c = conn.cursor()
+	c.execute("SELECT email FROM people WHERE firstName =?", [firstName])
+	print (c.fetchall())
+	#if multiple, specify ask which one
+	conn.close()
+
+def addEmail(db_name, firstName, email):
+	conn = sqlite3.connect(db_name)
+	c = conn.cursor()
+	c.executemany("UPDATE people SET email=? WHERE firstName=?", [(email, firstName)])
+	# c.executemany("INSERT INTO people (email) VALUES ? WHERE firstName = ?", [email, firstName])
+	if (c.rowcount != 0):
+		print ('Successfully added ' + email + ' to ' + firstName)
+	else:
+		print ('Failed to add ' + email + ' ' + firstName)()
+
+		#add already exists if statement error message
+	conn.commit()
 	conn.close()
 
 class _DeHTMLParser(HTMLParser):
@@ -202,11 +229,18 @@ def idGen(name, date):
 	pass
 
 def main():
+	initializeDB('kotodb')
+	insertDB('kotodb', 'Yana', 'Yudelevich')
+	readDB('kotodb', 'Yana')
+	addEmail('kotodb', 'Yana', 'yanapost@gmail.com')
+	readDB('kotodb', 'Yana')
+	readEmail('kotodb', 'Yana')
+
 	# credentials = get_credentials()
 	# http = credentials.authorize(httplib2.Http())
 	# service = discovery.build('gmail', 'v1', http=http)
 
-	# msgs = ListMessagesMatchingQuery(service, "me", "Ross")
+	# msgs = ListMessagesMatchingQuery(service, "me", name)
 
 	# print(msgs[30]['id'])
 	# encryptedMsg = GetMessage(service, "me", msgs[15]['id'])['payload']['parts'][1]['body']['data']
@@ -214,10 +248,6 @@ def main():
 	# deHTMLmsg = dehtml(deencryptedMsg)
 
 	# print(deHTMLmsg)
-
-	initializeDB('kotodb')
-	insertDB('kotodb', 'mama', 'mia')
-	readDB('kotodb')
 
 if __name__ == '__main__':
 	main()
