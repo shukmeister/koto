@@ -1,20 +1,8 @@
-#koto - communication tracking utiliity
-#created by ben shukman
-
-#each name has attributes: last date contacted, each contact is a commit (so its a unique data struct)
-
-#store JSON / class of data
-
-#import list of names
-#if recent email, display in high priority
-#if name is under X days old, needs love
-
 from __future__ import print_function
-
-import sqlite3
 
 import httplib2
 import os
+import os.path
 
 import base64
 import email
@@ -39,8 +27,6 @@ except ImportError:
 SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Gmail API Python Quickstart'
-
-db_name = 'kotodb'
 
 def get_credentials():
 	"""Gets valid user credentials from storage.
@@ -112,84 +98,12 @@ def GetMessage(service, user_id, msg_id):
     A Message.
   """
   try:
-    message = service.users().messages().get(userId=user_id, id=msg_id, format="full").execute()
+    message = service.users().messages().get(userId=user_id, id=msg_id, format="raw").execute()
 
     print ('Message snippet: %s' % message['snippet'])
     return message
   except errors.HttpError, error:
     print ('An error occurred: %s' % error)
-
-# def insertDB(db_name, values):
-#     print ('Inserting into database ' + db_name + '...')	
-#     conn = sqlite3.connect(db_name)
-#     c = conn.cursor()
-#     c.execute('''CREATE TABLE IF NOT EXISTS people
-#                  (text text, description text, link text,
-#                                UNIQUE(text))''')
-
-#     c.executemany('INSERT OR IGNORE INTO people VALUES (?, ?, ?)', values)
-
-#     conn.commit()
-#     conn.close()
-
-def initializeDB():
-	print ('Initializing database ' + db_name + '...')
-	conn = sqlite3.connect(db_name)
-	c = conn.cursor()
-	c.execute("CREATE TABLE IF NOT EXISTS people(firstName text, lastName text, type text, email text, UNIQUE(firstName, lastName))")
-	conn.close()
-
-def insertDB(firstName, lastName):
-	print ('Inserting ' + firstName + ' ' + lastName + ' into database ' + db_name + '...')
-	conn = sqlite3.connect(db_name)
-	c = conn.cursor()
-	# c.execute("CREATE TABLE IF NOT EXISTS people(firstName, lastName, UNIQUE(firstName, lastName))")
-	c.executemany("INSERT OR IGNORE INTO people(firstName, lastName) VALUES (?, ?)", [(firstName, lastName)])
-	if (c.rowcount != 0):
-		print ('Successfully added ' + firstName + ' ' + lastName)
-	else:
-		print ('Failed to add ' + firstName + ' ' + lastName)
-		#add already exists if statement error message
-	conn.commit()
-	conn.close()
-
-def readDB():
-	print ('Reading from database ' + db_name + '...')
-	conn = sqlite3.connect(db_name)
-	c = conn.cursor()
-	for row in c.execute("SELECT firstName, lastName FROM people"):
-		print (row)
-	conn.close()
-
-def readDB(firstName):
-	print ('Reading ' + firstName + ' from database ' + db_name + '...')
-	conn = sqlite3.connect(db_name)
-	c = conn.cursor()
-	c.execute("SELECT * FROM people WHERE firstName =?", [firstName])
-	print (c.fetchall())
-	conn.close()
-
-def readEmail(firstName):
-	conn = sqlite3.connect(db_name)
-	c = conn.cursor()
-	c.execute("SELECT email FROM people WHERE firstName =?", [firstName])
-	print (c.fetchall())
-	#if multiple, specify ask which one
-	conn.close()
-
-def addEmail(firstName, email):
-	conn = sqlite3.connect(db_name)
-	c = conn.cursor()
-	c.executemany("UPDATE people SET email=? WHERE firstName=?", [(email, firstName)])
-	# c.executemany("INSERT INTO people (email) VALUES ? WHERE firstName = ?", [email, firstName])
-	if (c.rowcount != 0):
-		print ('Successfully added ' + email + ' to ' + firstName)
-	else:
-		print ('Failed to add ' + email + ' ' + firstName)()
-
-		#add already exists if statement error message
-	conn.commit()
-	conn.close()
 
 class _DeHTMLParser(HTMLParser):
 	def __init__(self):
@@ -215,7 +129,6 @@ class _DeHTMLParser(HTMLParser):
 	def text(self):
 		return ''.join(self.__text).strip()
 
-
 def dehtml(text):
 	try:
 		parser = _DeHTMLParser()
@@ -225,39 +138,3 @@ def dehtml(text):
 	except:
 		print_exc(file=stderr)
 		return text
-
-def idGen(name, date):
-	#generate id name such as 8839GODZILLA040494
-	pass
-
-def main():
-	initializeDB()
-	insertDB('Yana', 'Yudelevich')
-	readDB('Yana')
-	addEmail('Yana', 'yanaspace@gmail.com')
-	readDB('Yana')
-	readEmail('Yana')
-
-	# credentials = get_credentials()
-	# http = credentials.authorize(httplib2.Http())
-	# service = discovery.build('gmail', 'v1', http=http)
-
-	# msgs = ListMessagesMatchingQuery(service, "me", name)
-
-	# print(msgs[30]['id'])
-	# encryptedMsg = GetMessage(service, "me", msgs[15]['id'])['payload']['parts'][1]['body']['data']
-	# deencryptedMsg = base64.urlsafe_b64decode(encryptedMsg.encode('UTF-8'))
-	# deHTMLmsg = dehtml(deencryptedMsg)
-
-	# print(deHTMLmsg)
-
-if __name__ == '__main__':
-	main()
-
-
-#template code:
-	#for each investor in a list:
-		#when is the last time we talked?
-		#snippet of last conversation
-		#num. of total conversations
-
