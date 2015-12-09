@@ -23,12 +23,12 @@ def insertDB(firstName, lastName):
 	conn.commit()
 	conn.close()
 
-def readDB():
-	print ('Reading from database ' + db_name + '...')
+def readAllEmails():
+	print ('Reading emails from database ' + db_name + '...' + '\n')
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
-	for row in c.execute("SELECT firstName, lastName FROM people"):
-		print (row)
+	c.execute("SELECT email FROM people")
+	return c.fetchall()
 	conn.close()
 
 def readDB(firstName):

@@ -7,6 +7,9 @@ import os.path
 import base64
 import email
 
+import datetime
+
+
 from apiclient import discovery
 from apiclient import errors
 import oauth2client
@@ -100,10 +103,71 @@ def GetMessage(service, user_id, msg_id):
   try:
     message = service.users().messages().get(userId=user_id, id=msg_id, format="raw").execute()
 
-    print ('Message snippet: %s' % message['snippet'])
+    # print ('Message snippet: %s' % message['snippet'])
     return message
   except errors.HttpError, error:
     print ('An error occurred: %s' % error)
+
+#returns the datetime a certain message ID was sent
+def getDate(service, msgID):
+	#get internalDate in epoch ms:
+	date = GetMessage(service, "me", msgID)['internalDate']
+
+	#convert to float
+	fdate = float(date)
+
+	#convert to timestamp and then datetime
+	return (datetime.datetime.fromtimestamp(fdate/1000.0))
+
+#returns the number of days that passed since given date
+def daysSince(date):
+	days = date - datetime.datetime.today()
+	sdays = str(days).split()
+
+	#take abs value of day value (must convert from str -> int -> str)
+	sdays[0] = str(abs(int(sdays[0])))
+
+	if (sdays[0] == "1"):
+		return (sdays[0] + " day")
+	else:
+		return (sdays[0] + " days")
+
+#returns ID of latest email from specific email address
+def getLatest(service, user_id, query=''):
+  try:
+    response = service.users().messages().list(userId=user_id,
+                                               q=query, maxResults=1).execute()
+    return(response['messages'][0])
+
+    # if 'message' in response:
+    # 	message.extend(response['message'])
+
+    # messages = []
+    # if 'messages' in response:
+    #   messages.extend(response['messages'])
+
+    # while 'nextPageToken' in response:
+    #   page_token = response['nextPageToken']
+    #   response = service.users().messages().list(userId=user_id, q=query,
+    #                                      pageToken=page_token).execute()
+    #   messages.extend(response['messages'])
+
+    # return messages[0]
+  except errors.HttpError, error:
+    print ('An error occurred: %s' % error)
+
+
+#returns text body parsed out of 'full' message from g.GetMessage()
+def extractBody(rawMessage):
+	msg_str = base64.urlsafe_b64decode(rawMessage['raw'].encode('UTF-8'))
+	msg = email.message_from_string(msg_str)	
+	for part in msg.walk():
+		msg.get_payload()
+		if part.get_content_type() == 'text/plain':
+			# mytext = base64.urlsafe_b64decode(part.get_payload().encode('UTF-8'))
+			mytext = part.get_payload()
+			# print part.get_payload()
+			return (mytext)	
 
 class _DeHTMLParser(HTMLParser):
 	def __init__(self):
