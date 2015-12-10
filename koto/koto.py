@@ -1,3 +1,27 @@
+'''koto
+
+Usage:
+	koto [-h | --help | -v | --version]
+	koto status [-a | --all]
+	koto add [TYPE] FIRSTNAME LASTNAME [EMAIL]
+	koto commit FIRSTNAME [LASTNAME] [-fb | -e | -m] COMMIT
+
+Optional arguments:
+	-h --help     Show help dialog
+	-v --version  Show verison number
+
+The most commonly used git commands are:
+   add        Add file contents to the index
+   branch     List, create, or delete branches
+   checkout   Checkout a branch or paths to the working tree
+   clone      Clone a repository into a new directory
+   commit     Record changes to the repository
+   push       Update remote refs along with associated objects
+   remote     Manage set of tracked repositories
+
+See 'koto help <command>' for more information on a specific command.
+'''
+
 #koto - communication tracking utiliity
 #created by ben shukman
 
@@ -11,16 +35,28 @@
 
 import db_methods, gmail_methods
 
+import sys
+
+from docopt import docopt
+
 g = gmail_methods
 db = db_methods
 db_name = 'kotodb'
+
+#put quotations around "COMMIT" ?
 
 def idGen(name, date):
 	#generate id name such as 8839GODZILLA040494
 	#use id's for commits
 	pass
 
+def print2(test):
+	print(test)
+
 def main():
+
+	# print ("hi: " + sys.argv[0])
+
 	db.initializeDB()
 	db.insertDB('Ben', 'Shukman')
 	db.readDB('Ben')
@@ -44,7 +80,7 @@ def main():
 	
 	'''
 	tempmsg = g.GetMessage(service, "me", g.getLatest(service, "me", "from: yanapost@gmail.com")['id'])
-	print (g.extractBody(tempmsg))
+	print (g.extractBody(tempmsg)
 
 	msgs = g.ListMessagesMatchingQuery(service, "me", query)
 
@@ -81,7 +117,9 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+	arguments = (docopt(__doc__, version='0.1.1'))
+	print(arguments)
+	# main()
 
 
 #template code:

@@ -55,7 +55,7 @@ def addEmail(firstName, email):
 	if (c.rowcount != 0):
 		print ('Successfully added ' + email + ' to ' + firstName)
 	else:
-		print ('Failed to add ' + email + ' ' + firstName)()
+		print ('Failed to add ' + email + ' ' + firstName)
 
 		#add already exists if statement error message
 	conn.commit()

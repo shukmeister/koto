@@ -21,11 +21,11 @@ from re import sub
 from sys import stderr
 from traceback import print_exc
 
-try:
-    import argparse
-    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-except ImportError:
-    flags = None
+# try:
+#     import argparse
+#     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+# except ImportError:
+#     flags = None
 
 SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
@@ -51,10 +51,10 @@ def get_credentials():
 	if not credentials or credentials.invalid:
 		flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
 		flow.user_agent = APPLICATION_NAME
-		if flags:
-			credentials = tools.run_flow(flow, store, flags)
-		else: # Needed only for compatibility with Python 2.6
-			credentials = tools.run(flow, store)
+		# if flags:
+		# 	credentials = tools.run_flow(flow, store, flags)
+		# else: # Needed only for compatibility with Python 2.6
+		credentials = tools.run(flow, store)
 		print('Storing credentials to ' + credential_path)
 	return credentials
 
@@ -155,7 +155,6 @@ def getLatest(service, user_id, query=''):
     # return messages[0]
   except errors.HttpError, error:
     print ('An error occurred: %s' % error)
-
 
 #returns text body parsed out of 'full' message from g.GetMessage()
 def extractBody(rawMessage):
