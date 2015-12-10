@@ -39,7 +39,7 @@ def readDB(firstName):
 	print (c.fetchall())
 	conn.close()
 
-def readEmail(firstName):
+def readEmail(firstName, lastName=None):
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
 	c.execute("SELECT email FROM people WHERE firstName =?", [firstName])
@@ -47,7 +47,7 @@ def readEmail(firstName):
 	#if multiple, specify ask which one
 	conn.close()
 
-def addEmail(firstName, email):
+def addEmail(email, firstName):
 	conn = sqlite3.connect(db_name)
 	c = conn.cursor()
 	c.executemany("UPDATE people SET email=? WHERE firstName=?", [(email, firstName)])
