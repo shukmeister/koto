@@ -4,15 +4,15 @@ dependencies = [] #removed original dependencies
 
 setup(
     name='koto',
-    version='0.1.0',
+    version='0.1.2',
     url='https://github.com/shukmeister/koto',
     license='BSD', #what is BSD license
     author='Ben Shukman',
     author_email='shukipost@gmail.com',
     description='command line communication tracking',
     long_description=__doc__,
-    packages=find_packages(exclude=['tests']), #mebbe change dis
-    package_data={'':['configs.txt']}, #mebbe change dis
+    packages=find_packages(exclude=['koto']), #mebbe change dis
+    package_data={'':[]}, #mebbe change dis
     include_package_data=False, #changed from True
     zip_safe=False,
     platforms='any',

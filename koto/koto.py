@@ -54,7 +54,8 @@ def print2(test):
 	print(test)
 
 def main():
-
+	arguments = (docopt(__doc__, version='0.1.1'))
+	print(arguments)
 	# print ("hi: " + sys.argv[0])
 
 	db.initializeDB()
@@ -117,9 +118,7 @@ def main():
 
 
 if __name__ == '__main__':
-	arguments = (docopt(__doc__, version='0.1.1'))
-	print(arguments)
-	# main()
+	main()
 
 
 #template code:
