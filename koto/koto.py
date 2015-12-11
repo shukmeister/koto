@@ -2,6 +2,7 @@
 
 Usage:
 	koto [-h | --help | --version]
+	koto init
 	koto status [-a | --all]
 	koto add [friend | associate | investor] <firstname> <lastname> [<email>]
 	koto commit <firstname> [<lastname>] [-fb | -e | -m] <commit>
@@ -41,7 +42,6 @@ from docopt import docopt
 
 g = gmail_methods
 db = db_methods
-db_name = 'kotodb'
 versionNumber = '0.1.2'
 
 def idGen(name, date):
@@ -126,6 +126,9 @@ def main():
 				print("")
 				print(g.GetMessage(service, "me", msgID)['snippet'])
 				print("")
+
+	elif arguments['init']:
+		db.initializeDB()
 
 	#import list of investors
 
