@@ -1,12 +1,15 @@
-'''koto
+'''
+Koto - Communication tracking CLI
+Created by Ben Shukman
 
 Usage:
 	koto [-h | --help | --version]
 	koto init
-	koto status (-a | --all | <firstname>) [<lastname>]
-	koto add [friend | associate | investor] <firstname> <lastname> [<email>]
+	koto status (all | <firstname> [<lastname>])
+	koto add <firstname> <lastname> [<email>]
 	koto delete <firstname> [<lastname>]
-	koto commit <firstname> [<lastname>] [-fb | -e | -m] <commit>
+	koto commit <firstname> [<lastname>] <commit>
+	koto list [-e | --email]
 
 Optional arguments:
 	-h --help  Show help dialog
@@ -35,9 +38,24 @@ See 'koto help <command>' for more information on a specific command.
 #if recent email, display in high priority
 #if name is under X days old, needs love
 
-import db_methods, gmail_methods
+#TODO: add email validation and error handling for gmail errors
+#TODO: add to database: validated field + last time communicated field
+#TODO: koto status -> more comprehensive overview of comms
+	#TODO: # of times talked to an investor
+#TODO: finish main koto command
+	# - run validation + update last time communicated (+ num. of times communicated if needed)
+	# - 
 
-import sys
+#write up read.me -> show ppl
+
+#TODO: add commits
+#TODO: add commit trees
+#TODO: add person types, koto add [friend | associate | investor] 
+#TODO: add commit types [-fb| -e| -m] w/ documentation
+#TODO: for 'jeeves?' pull from sublime todo also
+
+
+import db_methods, gmail_methods
 
 from docopt import docopt
 
@@ -50,49 +68,13 @@ def idGen(name, date):
 	#use id's for commits
 	pass
 
-def print2(test):
-	print(test)
-
 def main():
 	arguments = (docopt(__doc__, version=versionNumber))
-	# print(arguments)
-	# print ("hi: " + sys.argv[0])
-
-	# db.initializeDB()
-	# db.insertDB('Ben', 'Shukman')
-	# db.readDB('Ben')
-	# db.addEmail('Yana', 'yanaspace@gmail.com')
-	# db.addEmail('Ben', 'shukipost@gmail.com')
-	# db.readDB('Ben')
-
-	# for row in db.readEmail('Ben'):
-		# query = row	
-	# print (query)
 
 	credentials = g.get_credentials()
 	http = credentials.authorize(g.httplib2.Http())
 	service = g.discovery.build('gmail', 'v1', http=http)
 
-	'''
-	print("debug here: ")
-	test = g.getLatest(service, "me", "from: shukipost@gmail.com")['id']
-	print(g.GetMessage(service, "me", test)['snippet'])
-	'''
-	
-	'''
-	tempmsg = g.GetMessage(service, "me", g.getLatest(service, "me", "from: yanapost@gmail.com")['id'])
-	print (g.extractBody(tempmsg)
-
-	msgs = g.ListMessagesMatchingQuery(service, "me", query)
-
-	message = g.GetMessage(service, "me", msgs[3]['id'])
-
-	# snippet = g.GetMessage(service, "me", msgs[3]['id'])['snippet']
-	# print (snippet)
-
-	print (g.extractBody(message))
-	'''
-	
 	if arguments['add']:
 		if arguments['<email>']:
 			# print("Adding " + str(arguments['<firstname>']) + " " + str(arguments['<lastname>']) + " to database")
@@ -103,7 +85,7 @@ def main():
 			db.insertDB(arguments['<firstname>'].capitalize(), arguments['<lastname>'].capitalize())
 
 	elif arguments['status']:
-		if (arguments['--all'] | arguments['-a']):
+		if (arguments['all']):
 			#grab email of each
 			emails = db.readAllEmails()
 
@@ -142,9 +124,11 @@ def main():
 
 			#if multiple people exist with given first name
 			if (matches > 1):
-				lastName = selectPerson(people)
+
+				lastName = db.selectPerson(arguments['<firstname>'].capitalize())
 
 				emailID = db.readEmail(arguments['<firstname>'].capitalize(), lastName.capitalize())[0]
+				print("") #to make space away from select person input
 				print("From: " + arguments['<firstname>'].capitalize() + " " + lastName.capitalize() + " (" + emailID + ")")
 				msgID = (g.getLatest(service, "me", "from: {0}".format(emailID))['id'])
 				print("Message ID: " + msgID)
@@ -192,36 +176,30 @@ def main():
 	elif arguments['init']:
 		db.initializeDB()
 
-	#import list of investors
+	elif arguments['list']:
 
-	#grab email of each
-	# emails = db.readAllEmails()
+		if (arguments['-e'] | arguments['--email']):
+			names = db.allNames()
+			for x in names:
+				email = db.readEmail(x[0], x[1])[0]
+				print(str(x[0]) + ' ' + str(x[1]) + ' (' + str(email) + ')')
 
-	#look up ID of latest email
-	# for x in emails:
-	# 	print("last message received from " + "{0}" + ":") .format(x[0])
-	# 	msgID = (g.getLatest(service, "me", "from: {0}".format(x[0]))['id'])
-	# 	print("message ID: " + msgID)
+		else:
+			names = db.allNames()
+			for x in names:
+				print(x[0] + ' ' + x[1])
 
-	# 	#calculate date of email + days since last comm + get snippet
+	#standard koto command:
+	else:
+		print('High priority:')
+			#if (# of days < X):
 
-	# 	#list the data
-	# 	date = g.getDate(service, msgID)
-	# 	print("Received: " + str(date))
-	# 	print(g.daysSince(date) + " since last communication")
 
-	# 	print("")
-	# 	print(g.GetMessage(service, "me", msgID)['snippet'])
-	# 	print("")
+		print('Needs love:')
+			#if (# of days > X):
+
 
 
 if __name__ == '__main__':
 	main()
-
-
-#template code:
-	#for each investor in a list:
-		#when is the last time we talked?
-		#snippet of last conversation
-		#num. of total conversations
 

@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import sys
 
 # db_directory = '/usr/local/Library/Koto'
 db_path = '/usr/local/Library/Koto/kotodb'
@@ -38,6 +39,13 @@ def readAllEmails():
 	return c.fetchall()
 	conn.close()
 
+def allNames():
+	conn = sqlite3.connect(db_path)
+	c = conn.cursor()
+	c.execute("SELECT firstName, lastName FROM people")
+	return c.fetchall()
+	conn.close()
+
 def readDB(firstName):
 	print ('Reading ' + firstName + ' from database ' + db_path + '...')
 	conn = sqlite3.connect(db_path)
@@ -57,13 +65,11 @@ def deleteDB(firstName, lastName=None):
 			print ('Could not delete ' + str(firstName) + ' ' + str(lastName))
 	else:
 
-		c.execute("SELECT firstName, lastName FROM people WHERE firstName =?", [firstName])
-		people = c.fetchall()
-		matches = len(people)
+		matches = countMatches(firstName.capitalize())
 
 		#if multiple people exist with given first name
 		if (matches > 1):
-			lastName = selectPerson(people)
+			lastName = selectPerson(firstName)
 			c.execute("DELETE FROM people WHERE firstName=? AND lastName=?", [firstName, lastName])
 		#if only one person exists with given first name
 		elif (matches == 1):
@@ -118,9 +124,9 @@ def addEmail(email, firstName, lastName):
 	c.executemany("UPDATE people SET email=? WHERE firstName=? AND lastName =?", [(email, firstName, lastName)])
 	# c.executemany("INSERT INTO people (email) VALUES ? WHERE firstName = ?", [email, firstName])
 	if (c.rowcount != 0):
-		print ('Successfully added ' + email + ' to ' + firstName)
+		print ('Successfully added ' + email + ' to ' + firstName + " " + lastName)
 	else:
-		print ('Failed to add ' + email + ' ' + firstName)
+		print ('Failed to add ' + email + ' ' + firstName + " " + lastName)
 
 		#add already exists if statement error message
 	conn.commit()
@@ -134,7 +140,12 @@ def countMatches(firstName):
 	return len(people)
 
 #in case a query returns multiple results:
-def selectPerson(people):
+def selectPerson(firstName):
+	conn = sqlite3.connect(db_path)
+	c = conn.cursor()
+	c.execute("SELECT firstName, lastName FROM people WHERE firstName =?", [firstName])
+	people = c.fetchall()
+
 	count = 0
 	array = []
 	print ("Multiple people found.  Select the correct person by ID number:")
@@ -150,6 +161,6 @@ def selectPerson(people):
 					lastName = person[1][1]
 					return lastName
 		else:
-			print("Error: integer not in ID range")
+			sys.exit("Error: integer not in ID range")
 	except ValueError:
-		print("Error: expected an integer")
+		sys.exit("Error: expected an integer")
