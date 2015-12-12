@@ -31,7 +31,7 @@ def insertDB(firstName, lastName):
 	conn.close()
 
 def readAllEmails():
-	print ('Reading emails from database ' + db_path + '...' + '\n')
+	print ('Reading contact emails from database ' + db_path + '...' + '\n')
 	conn = sqlite3.connect(db_path)
 	c = conn.cursor()
 	c.execute("SELECT email FROM people")
@@ -46,18 +46,76 @@ def readDB(firstName):
 	print (c.fetchall())
 	conn.close()
 
+def deleteDB(firstName, lastName=None):
+	conn = sqlite3.connect(db_path)
+	c = conn.cursor()
+	if (lastName):
+		c.execute("DELETE FROM people WHERE firstName=? AND lastName=?", [firstName, lastName])
+		if (c.rowcount != 0):
+			print ('Successfully deleted ' + str(firstName) + ' ' + str(lastName))
+		else:
+			print ('Could not delete ' + str(firstName) + ' ' + str(lastName))
+	else:
+
+		c.execute("SELECT firstName, lastName FROM people WHERE firstName =?", [firstName])
+		people = c.fetchall()
+		matches = len(people)
+
+		#if multiple people exist with given first name
+		if (matches > 1):
+			lastName = selectPerson(people)
+			c.execute("DELETE FROM people WHERE firstName=? AND lastName=?", [firstName, lastName])
+		#if only one person exists with given first name
+		elif (matches == 1):
+			c.execute("SELECT lastName FROM people WHERE firstName =?", [firstName])
+			lastName = c.fetchone()[0]
+			c.execute("DELETE FROM people WHERE firstName=? AND lastName=?", [firstName, lastName])
+		elif (matches == 0):
+			print ('Error: person with that name does not exist')
+
+		if (c.rowcount == 1):
+			print ('Successfully deleted ' + str(firstName) + " " + str(lastName))
+
+	# if (c.rowcount == 1):
+	# 	print ('Successfully deleted ' + str(firstName) + " " + str(lastName))
+	# # elif (c.rowcount > 1):
+	# # 	print(c.fetchone())
+	# else:
+	# 	print ('Could not delete ' + str(firstName)) # + " " + str(lastName)
+	conn.commit()
+	conn.close()
+
 def readEmail(firstName, lastName=None):
 	conn = sqlite3.connect(db_path)
 	c = conn.cursor()
-	c.execute("SELECT email FROM people WHERE firstName =?", [firstName])
+	if (lastName):
+		c.execute("SELECT email FROM people WHERE firstName =? AND lastName = ?", [firstName, lastName])
+	else:
+		c.execute("SELECT email FROM people WHERE firstName =?", [firstName])
 	return (c.fetchone())
 	#if multiple, specify ask which one
 	conn.close()
 
-def addEmail(email, firstName):
+def readName(email):
 	conn = sqlite3.connect(db_path)
 	c = conn.cursor()
-	c.executemany("UPDATE people SET email=? WHERE firstName=?", [(email, firstName)])
+	c.execute("SELECT firstName, lastName FROM people WHERE email =?", [email])
+	name = c.fetchone()
+	return name
+	conn.close()	
+
+def readLastName(firstName):
+	conn = sqlite3.connect(db_path)
+	c = conn.cursor()
+	c.execute("SELECT lastName FROM people WHERE firstName =?", [firstName])
+	lastName = c.fetchone()[0]
+	return lastName
+	conn.close()
+
+def addEmail(email, firstName, lastName):
+	conn = sqlite3.connect(db_path)
+	c = conn.cursor()
+	c.executemany("UPDATE people SET email=? WHERE firstName=? AND lastName =?", [(email, firstName, lastName)])
 	# c.executemany("INSERT INTO people (email) VALUES ? WHERE firstName = ?", [email, firstName])
 	if (c.rowcount != 0):
 		print ('Successfully added ' + email + ' to ' + firstName)
@@ -67,3 +125,31 @@ def addEmail(email, firstName):
 		#add already exists if statement error message
 	conn.commit()
 	conn.close()
+
+def countMatches(firstName):
+	conn = sqlite3.connect(db_path)
+	c = conn.cursor()
+	c.execute("SELECT firstName, lastName FROM people WHERE firstName =?", [firstName])
+	people = c.fetchall()
+	return len(people)
+
+#in case a query returns multiple results:
+def selectPerson(people):
+	count = 0
+	array = []
+	print ("Multiple people found.  Select the correct person by ID number:")
+	for person in people:
+		print ("[" + str(count) + "]: " + str(person[0]) + " " + str(person[1]))
+		array.append((count, person))
+		count += 1		
+	try:
+		ID = int(raw_input('--> '))
+		if (0 <= ID & ID <= (count - 1)):
+			for person in array:
+				if person[0] == ID:
+					lastName = person[1][1]
+					return lastName
+		else:
+			print("Error: integer not in ID range")
+	except ValueError:
+		print("Error: expected an integer")

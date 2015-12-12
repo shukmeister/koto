@@ -3,8 +3,9 @@
 Usage:
 	koto [-h | --help | --version]
 	koto init
-	koto status [-a | --all]
+	koto status (-a | --all | <firstname>) [<lastname>]
 	koto add [friend | associate | investor] <firstname> <lastname> [<email>]
+	koto delete <firstname> [<lastname>]
 	koto commit <firstname> [<lastname>] [-fb | -e | -m] <commit>
 
 Optional arguments:
@@ -95,14 +96,14 @@ def main():
 	if arguments['add']:
 		if arguments['<email>']:
 			# print("Adding " + str(arguments['<firstname>']) + " " + str(arguments['<lastname>']) + " to database")
-			db.insertDB(arguments['<firstname>'], arguments['<lastname>'])
-			db.addEmail(arguments['<email>'], arguments['<firstname>'])
+			db.insertDB(arguments['<firstname>'].capitalize(), arguments['<lastname>'].capitalize())
+			db.addEmail(arguments['<email>'], arguments['<firstname>'].capitalize(), arguments['<lastname>'].capitalize())
 		else:
 			# print("Adding " + str(arguments['<firstname>']) + " " + str(arguments['<lastname>']) + " to database")
-			db.insertDB(arguments['<firstname>'], arguments['<lastname>'])
+			db.insertDB(arguments['<firstname>'].capitalize(), arguments['<lastname>'].capitalize())
 
 	elif arguments['status']:
-		if arguments['--all']:
+		if (arguments['--all'] | arguments['-a']):
 			#grab email of each
 			emails = db.readAllEmails()
 
@@ -111,8 +112,13 @@ def main():
 			print("Gathering last messages from database \n")
 				
 			for x in emails:
+
+				name = db.readName(str(x[0]))
+				firstName = name[0]
+				lastName = name[1]
+
 				#add owner name of email
-				print("From: " + "{0}") .format(x[0])
+				print("From: " + str(firstName) + " " + str(lastName) + " ({0})").format(x[0])
 				msgID = (g.getLatest(service, "me", "from: {0}".format(x[0]))['id'])
 				print("Message ID: " + msgID)
 
@@ -120,12 +126,68 @@ def main():
 
 			 	#list the data
 				date = g.getDate(service, msgID)
-				print("Received on: " + str(date))
+				print("Received: " + str(date))
 				print(g.daysSince(date) + " since last communication")
 
 				print("")
 				print(g.GetMessage(service, "me", msgID)['snippet'])
 				print("")
+
+
+
+		else:
+			print("Gathering last messages from database \n")
+
+			matches = db.countMatches(arguments['<firstname>'].capitalize())
+
+			#if multiple people exist with given first name
+			if (matches > 1):
+				lastName = selectPerson(people)
+
+				emailID = db.readEmail(arguments['<firstname>'].capitalize(), lastName.capitalize())[0]
+				print("From: " + arguments['<firstname>'].capitalize() + " " + lastName.capitalize() + " (" + emailID + ")")
+				msgID = (g.getLatest(service, "me", "from: {0}".format(emailID))['id'])
+				print("Message ID: " + msgID)
+
+				#calculate date of email + days since last comm + get snippet
+
+			 	#list the data
+				date = g.getDate(service, msgID)
+				print("Received: " + str(date))
+				print(g.daysSince(date) + " since last communication")
+
+				print("")
+				print(g.GetMessage(service, "me", msgID)['snippet'])
+				print("")
+
+			#if only one person exists with given first name
+			elif (matches == 1):
+				lastName = db.readLastName(arguments['<firstname>'].capitalize())
+				emailID = db.readEmail(arguments['<firstname>'].capitalize(), lastName)[0]
+				print("From: " + arguments['<firstname>'].capitalize() + " " + str(lastName) + " (" + emailID + ")")
+				msgID = (g.getLatest(service, "me", "from: {0}".format(emailID))['id'])
+				print("Message ID: " + msgID)
+
+				#calculate date of email + days since last comm + get snippet
+
+			 	#list the data
+				date = g.getDate(service, msgID)
+				print("Received: " + str(date))
+				print(g.daysSince(date) + " since last communication")
+
+				print("")
+				print(g.GetMessage(service, "me", msgID)['snippet'])
+				print("")
+
+			elif (matches == 0):
+				print ('Error: person with that name does not exist')
+
+	elif arguments['delete']:
+		# print("Deleting " + str(arguments['<firstname>']) + " " + str(arguments['<lastname>']) + " from database \n")
+		if (arguments['<lastname>']):
+			db.deleteDB(arguments['<firstname>'].capitalize(), arguments['<lastname>'].capitalize())
+		else:
+			db.deleteDB(arguments['<firstname>'].capitalize())
 
 	elif arguments['init']:
 		db.initializeDB()
@@ -145,7 +207,7 @@ def main():
 
 	# 	#list the data
 	# 	date = g.getDate(service, msgID)
-	# 	print("received on: " + str(date))
+	# 	print("Received: " + str(date))
 	# 	print(g.daysSince(date) + " since last communication")
 
 	# 	print("")
