@@ -4,28 +4,31 @@ Created by Ben Shukman
 
 Usage:
 	koto [-h | --help | --version]
-	koto init
-	koto status (all | <firstname> [<lastname>])
 	koto add <firstname> <lastname> [<email>]
 	koto delete <firstname> [<lastname>]
-	koto commit <firstname> [<lastname>] <commit>
+	koto status (all | <firstname> [<lastname>])
 	koto list [-e | --email] [-t | --time]
 	koto import
+	koto init
 
 Optional arguments:
-	-h --help  Show help dialog
-	--version  Show verison number
+	-h --help   Show help dialog
+	--version   Show verison number
+	-e --email  Show emails
+	-t --time   Show last time contacted
 
-The most commonly used git commands are:
-   add        Add file contents to the index
-   branch     List, create, or delete branches
-   checkout   Checkout a branch or paths to the working tree
-   clone      Clone a repository into a new directory
-   commit     Record changes to the repository
-   push       Update remote refs along with associated objects
-   remote     Manage set of tracked repositories
+Koto commands:
+	add        Add a new contact (only name is required)
+	delete     Delete a contact
+	status     Show a history of communications with an individual (or all)
+	list 	  List the contacts in your database
+	import     Import a CSV file of new contacts
+	init       Set up koto and change settings
 
-See 'koto help <command>' for more information on a specific command.
+Planned features:
+	koto commit <firstname> [<lastname>] <commit>
+	Comprehensive koto status w/ commit tree branches
+	Day -> month parser w/ hour support
 '''
 
 
@@ -56,6 +59,8 @@ See 'koto help <command>' for more information on a specific command.
 #TODO: add person types, koto add [friend | associate | investor] 
 #TODO: add commit types [-fb| -e| -m] w/ documentation
 #TODO: for 'jeeves?' pull from sublime todo also
+#format:
+	# First Last - 6 days ago (if > 31 days, say months (1 month, 5 days ago))
 
 
 import db_methods, gmail_methods
@@ -64,7 +69,7 @@ from docopt import docopt
 
 g = gmail_methods
 db = db_methods
-versionNumber = '0.1.2'
+versionNumber = '0.1.5'
 
 def idGen(name, date):
 	#generate id name such as 8839GODZILLA040494
@@ -82,22 +87,6 @@ def main():
 		else:
 			print("This looks like your first time using koto.  Run 'koto init' to initialize setup.")
 			db.exit()
-
-	'''
-
-	koto standard command:
-	- high priority
-	- new emails
-	- needs love
-		- someone filter only ones in [recent-ish] communication (<2 months?)
-	- forgotten (maybe)
-
-	format:
-	First Last - 6 days ago (if > 31 days, say months (1 month, 5 days ago))
-
-
-	koto status should be comprehensive, not for only one msg
-	'''
 
 	if arguments['init']:
 
@@ -139,6 +128,7 @@ def main():
 			db.importCSV()
 
 		print("\nWelcome to koto!  Use '--help' to learn more")
+		db.exit()
 
 	credentials = g.get_credentials()
 	http = credentials.authorize(g.httplib2.Http())
@@ -155,7 +145,7 @@ def main():
 			# print("Adding " + str(arguments['<firstname>']) + " " + str(arguments['<lastname>']) + " to database")
 			db.insertDB(arguments['<firstname>'].capitalize(), arguments['<lastname>'].capitalize())
 
-	if arguments['import']:
+	elif arguments['import']:
 		db.importCSV()
 
 	elif arguments['status']:
@@ -253,10 +243,15 @@ def main():
 
 		for x in names:
 			if ((arguments['-t'] | arguments['--time']) & (arguments['-e'] | arguments['--email'])):
-				msgID = (g.getLatest(service, "me", "from: {0}".format(x[1]))['id'])
+				msgID = (g.getLatest(service, "me", "from: {0}".format(x[0] + ' ' + x[1]))['id'])
 				date = g.getDate(service, msgID)
 				days = g.daysSince(date)
 				email = db.readEmail(x[0], x[1])[0]
+				#month calculation code, create better version that grabs actual 28-31 day values later:
+				# if (days >= 30):
+				# 	while (days > 0):
+				# 		days - 30
+				# 		months += 1
 				print(x[0] + ' ' + x[1] + ' (' + str(email) + ') - ' + days + ' ago')
 			elif (arguments['-e'] | arguments['--email']):
 				email = db.readEmail(x[0], x[1])[0]
@@ -271,17 +266,42 @@ def main():
 				
 	#standard koto command:
 	else:
-		print('High priority:')
-			#if (# of days < X):
+		print('Gathering data..')
+		import json
 
+		needsLove = []
+		highPriority = []
+		new = []
 
-		print('Needs love:')
-			#if (# of days > X):
+		with open('/usr/local/Library/Koto/koto_settings.txt', 'r') as datafile:
+			data = json.load(datafile)
+			updateTime = data['updateTime']
+			responseTime = data['responseTime']
 
-		#check if any new investors
-		#update validations + num of comms
+		for name in db.allNames():
+			msgID = (g.getLatest(service, "me", "from: {0}".format(name[0] + ' ' + name[1]))['id'])
+			date = g.getDate(service, msgID)
+			days = g.daysSince(date)
+			if (int(days.split()[0]) <= 1):
+				new.append('{0}'.format('\t' + name[0] + ' ' + name[1] + ' - ' + days + ' ago'))
+			if (int(days.split()[0]) >= updateTime):
+				needsLove.append('{0}'.format('\t' + name[0] + ' ' + name[1] + ' - ' + days + ' ago'))
+			if ((1 < int(days.split()[0])) & (int(days.split()[0]) <= responseTime)):
+				highPriority.append('{0}'.format('\t' + name[0] + ' ' + name[1] + ' - ' + days + ' ago'))
 
+		print('\nNew messages:')
+		for x in new:
+			print (x)
 
+		print('\nHigh priority:')
+		for x in highPriority:
+			print (x)
+
+		print('\nNeeds love:')
+		for x in needsLove:
+			print (x)
+
+		print('')
 
 if __name__ == '__main__':
 	main()
