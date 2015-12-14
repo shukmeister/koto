@@ -2,20 +2,35 @@ import sqlite3
 import os
 import sys
 
-# db_directory = '/usr/local/Library/Koto'
+db_directory = '/usr/local/Library/Koto'
 db_path = '/usr/local/Library/Koto/kotodb'
 
+def firstStartupCheck():
+	#if the database file exists
+	if os.path.exists(db_path):
+		#it is not the first time running koto
+		return False
+	else:
+		return True
+
 def initializeDB():
-	print ('Initializing database ' + db_path + '...')
+	print ('Initializing database in ' + db_path)
 	db_directory = os.path.dirname(db_path)
 	if not os.path.exists(db_directory):
 		os.makedirs(db_directory)
-		print ('Directory created')
+		print ('Database directory created')
 	conn = sqlite3.connect(db_path)
 	c = conn.cursor()
 	c.execute("CREATE TABLE IF NOT EXISTS people(firstName text, lastName text, type text, email text, UNIQUE(firstName, lastName))")
 	print('Database created')
 	conn.close()
+
+def initializeSettings():
+	if not os.path.exists('/usr/local/Library/Koto/koto_settings.txt'):
+		file = open('/usr/local/Library/Koto/koto_settings.txt', 'w')
+		file.close()
+	if (os.path.exists('/usr/local/Library/Koto/koto_settings.txt')):
+		print('Settings file created')
 
 def insertDB(firstName, lastName):
 	print ('Inserting ' + firstName + ' ' + lastName + ' into database ' + db_path + '...')
@@ -126,7 +141,7 @@ def addEmail(email, firstName, lastName):
 	if (c.rowcount != 0):
 		print ('Successfully added ' + email + ' to ' + firstName + " " + lastName)
 	else:
-		print ('Failed to add ' + email + ' ' + firstName + " " + lastName)
+		print ('Failed to add ' + email + ' to ' + firstName + " " + lastName)
 
 		#add already exists if statement error message
 	conn.commit()
@@ -138,6 +153,61 @@ def countMatches(firstName):
 	c.execute("SELECT firstName, lastName FROM people WHERE firstName =?", [firstName])
 	people = c.fetchall()
 	return len(people)
+
+def exit():
+	sys.exit()
+
+def selectNumber():
+	try:
+		ID = int(raw_input('--> '))
+		return (ID)
+	except ValueError:
+		sys.exit("Error: expected an integer")
+
+def selectBoolean():
+	boolean = raw_input('--> ').capitalize()
+	if (boolean == 'Y'):
+		return True
+		print('Y' + boolean)
+	if (boolean == 'N'):
+		return False
+		print('N' + boolean)
+	else:
+		sys.exit("Error: expected boolean Y or N")
+
+def importCSV():
+	import csv
+
+	conn = sqlite3.connect(db_path)
+	c = conn.cursor()
+
+	print('\nType path to file containing contacts \nFile must be in CSV format with data: full name, email, type (only name is required)')
+	path = str(raw_input('--> '))
+	if (os.path.exists(path)):
+		with open(path, 'rb') as csvfile:
+			contacts = csv.reader(csvfile, delimiter=',')
+			for row in contacts:
+				firstName, lastName = row[0].split()
+				if (len(row) >= 2):
+					email = row[1].strip()
+				else:
+					email = None
+				if (len(row) == 3):
+					contactType = row[2].strip()
+				else:
+					contactType = None
+				c.execute("INSERT OR IGNORE into people (firstName, lastName, type, email) VALUES (?, ?, ?, ?)", [firstName, lastName, contactType, email])
+				if (c.rowcount != 0):
+					print ('Successfully added ' + firstName + ' ' + lastName)
+				else:
+					print ('Failed to add ' + firstName + ' ' + lastName)
+				conn.commit()
+
+		#add already exists if statement error message
+	else:
+		sys.exit('Path does not exist')
+
+	conn.close()
 
 #in case a query returns multiple results:
 def selectPerson(firstName):

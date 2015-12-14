@@ -9,7 +9,8 @@ Usage:
 	koto add <firstname> <lastname> [<email>]
 	koto delete <firstname> [<lastname>]
 	koto commit <firstname> [<lastname>] <commit>
-	koto list [-e | --email]
+	koto list [-e | --email] [-t | --time]
+	koto import
 
 Optional arguments:
 	-h --help  Show help dialog
@@ -26,6 +27,7 @@ The most commonly used git commands are:
 
 See 'koto help <command>' for more information on a specific command.
 '''
+
 
 #koto - communication tracking utiliity
 #created by ben shukman
@@ -45,6 +47,7 @@ See 'koto help <command>' for more information on a specific command.
 #TODO: finish main koto command
 	# - run validation + update last time communicated (+ num. of times communicated if needed)
 	# - 
+#TODO: import file CSV
 
 #write up read.me -> show ppl
 
@@ -71,9 +74,77 @@ def idGen(name, date):
 def main():
 	arguments = (docopt(__doc__, version=versionNumber))
 
+	#check if version is up to date
+
+	if (db.firstStartupCheck()):
+		if arguments['init']:
+			pass
+		else:
+			print("This looks like your first time using koto.  Run 'koto init' to initialize setup.")
+			db.exit()
+
+	'''
+
+	koto standard command:
+	- high priority
+	- new emails
+	- needs love
+		- someone filter only ones in [recent-ish] communication (<2 months?)
+	- forgotten (maybe)
+
+	format:
+	First Last - 6 days ago (if > 31 days, say months (1 month, 5 days ago))
+
+
+	koto status should be comprehensive, not for only one msg
+	'''
+
+	if arguments['init']:
+
+		print('\nInitializing koto setup\n')
+
+		import json
+		#check if version up to date
+
+		#gmail authentication
+		print("Authenticating gmail connection")
+		success = g.get_credentials()
+		if (success):
+			print("Authentication successful")
+
+		#database creation
+		db.initializeDB()
+
+		#settings file creation
+		db.initializeSettings()
+		with open('/usr/local/Library/Koto/koto_settings.txt', 'w') as outfile:
+			json.dump({'updateTime':'', 'responseTime':'',}, outfile)
+
+		#set up personal usage settings
+		print("\nHow often do you want to update your contacts? Answer in days")
+		updateTime = db.selectNumber()
+		#write updateTime to a file
+
+		print("What is the maximum number of days that can pass before a response?")
+		responseTime = db.selectNumber()
+		#write responseTime to a file
+
+		with open('/usr/local/Library/Koto/koto_settings.txt', 'w') as outfile:
+			json.dump({'updateTime': updateTime, 'responseTime': responseTime}, outfile)
+
+		#ask to import CSV
+		print("Do you have a list of contacts to import? (Y/N)")
+		importBoolean = db.selectBoolean()
+		if (importBoolean):
+			db.importCSV()
+
+		print("\nWelcome to koto!  Use '--help' to learn more")
+
 	credentials = g.get_credentials()
 	http = credentials.authorize(g.httplib2.Http())
 	service = g.discovery.build('gmail', 'v1', http=http)
+
+	#grab updateTime and responseTime from a file
 
 	if arguments['add']:
 		if arguments['<email>']:
@@ -83,6 +154,9 @@ def main():
 		else:
 			# print("Adding " + str(arguments['<firstname>']) + " " + str(arguments['<lastname>']) + " to database")
 			db.insertDB(arguments['<firstname>'].capitalize(), arguments['<lastname>'].capitalize())
+
+	if arguments['import']:
+		db.importCSV()
 
 	elif arguments['status']:
 		if (arguments['all']):
@@ -173,22 +247,28 @@ def main():
 		else:
 			db.deleteDB(arguments['<firstname>'].capitalize())
 
-	elif arguments['init']:
-		db.initializeDB()
-
 	elif arguments['list']:
 
-		if (arguments['-e'] | arguments['--email']):
-			names = db.allNames()
-			for x in names:
+		names = db.allNames()
+
+		for x in names:
+			if ((arguments['-t'] | arguments['--time']) & (arguments['-e'] | arguments['--email'])):
+				msgID = (g.getLatest(service, "me", "from: {0}".format(x[1]))['id'])
+				date = g.getDate(service, msgID)
+				days = g.daysSince(date)
 				email = db.readEmail(x[0], x[1])[0]
-				print(str(x[0]) + ' ' + str(x[1]) + ' (' + str(email) + ')')
-
-		else:
-			names = db.allNames()
-			for x in names:
+				print(x[0] + ' ' + x[1] + ' (' + str(email) + ') - ' + days + ' ago')
+			elif (arguments['-e'] | arguments['--email']):
+				email = db.readEmail(x[0], x[1])[0]
+				print(x[0] + ' ' + x[1] + ' (' + str(email) + ')')
+			elif ((arguments['-t'] | arguments['--time'])):
+				msgID = (g.getLatest(service, "me", "from: {0}".format(x[1]))['id'])
+				date = g.getDate(service, msgID)
+				days = g.daysSince(date)
+				print(x[0] + ' ' + x[1] + ' - ' + days + ' ago')
+			else:
 				print(x[0] + ' ' + x[1])
-
+				
 	#standard koto command:
 	else:
 		print('High priority:')
@@ -197,6 +277,9 @@ def main():
 
 		print('Needs love:')
 			#if (# of days > X):
+
+		#check if any new investors
+		#update validations + num of comms
 
 
 
