@@ -30,7 +30,11 @@ $koto import
 
 The `status` command kinda sucks right now, but you can still use it.  The most useful command is `list -t`
 
-I'll make the readme better later
+I'll make the readme better later.  To learn more about command usage:
+
+```
+$koto --help
+```
 
 #Planned features
 
