@@ -1,22 +1,22 @@
 from setuptools import find_packages, setup
 
-dependencies = [] #removed original dependencies
+dependencies = ['docopt']
 
 setup(
     name='koto',
-    version='0.1.2',
+    version='0.2.0',
     url='https://github.com/shukmeister/koto',
-    license='BSD', #what is BSD license
+    license='MIT',
     author='Ben Shukman',
     author_email='shukipost@gmail.com',
-    description='command line communication tracking',
+    description='Command line email tracking',
     long_description=__doc__,
-    packages=find_packages(exclude=['koto']), #mebbe change dis
-    package_data={'':[]}, #mebbe change dis
-    include_package_data=False, #changed from True
+    packages=find_packages(),
+    package_data={'':[]},
+    include_package_data=False,
     zip_safe=False,
     platforms='any',
-    install_requires=dependencies, #mebbe change dis
+    install_requires=dependencies,
     entry_points={
         'console_scripts': [
           'koto=koto.koto:main' #what dis? originally: 'find_email=find_email.find_email:main'

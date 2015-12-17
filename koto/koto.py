@@ -69,7 +69,7 @@ from docopt import docopt
 
 g = gmail_methods
 db = db_methods
-versionNumber = '0.1.5'
+versionNumber = '0.2.0'
 
 def idGen(name, date):
 	#generate id name such as 8839GODZILLA040494
@@ -114,7 +114,7 @@ def main():
 		updateTime = db.selectNumber()
 		#write updateTime to a file
 
-		print("What is the maximum number of days that can pass before a response?")
+		print("What is the maximum number of days before an email response is overdue?")
 		responseTime = db.selectNumber()
 		#write responseTime to a file
 
@@ -266,7 +266,7 @@ def main():
 				
 	#standard koto command:
 	else:
-		print('Gathering data..')
+		# print('Gathering data...')
 		import json
 
 		needsLove = []
@@ -290,16 +290,20 @@ def main():
 				highPriority.append('{0}'.format('\t' + name[0] + ' ' + name[1] + ' - ' + days + ' ago'))
 
 		print('\nNew messages:')
+		print('=============')
 		for x in new:
 			print (x)
 
-		print('\nHigh priority:')
+		print('\nOverdue')
+		print('=======')
 		for x in highPriority:
 			print (x)
 
-		print('\nNeeds love:')
-		for x in needsLove:
-			print (x)
+		if (len(needsLove) > 0):
+			print('\nNeeds love:')
+			print('===========')
+			for x in needsLove:
+				print (x)
 
 		print('')
 
