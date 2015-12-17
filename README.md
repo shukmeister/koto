@@ -30,6 +30,6 @@ $koto import
 
 #Planned features
 
-- koto commit <firstname> [<lastname>] <commit>
-- Comprehensive koto status command w/ commit tree branches
+- `koto commit <firstname> [<lastname>] <commit>`
+- Comprehensive `koto status` command w/ commit tree branches
 - Day -> month parser w/ hour support
