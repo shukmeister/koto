@@ -28,6 +28,10 @@ You can also import a list of contacts in CSV format.  The `import` command will
 $koto import
 ````
 
+The `status` command kinda sucks right now, but you can still use it.  The most useful command is `list -t`
+
+I'll make the readme better later
+
 #Planned features
 
 - `koto commit <firstname> [<lastname>] <commit>`
