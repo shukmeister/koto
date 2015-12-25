@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-dependencies = ['docopt']
+dependencies = ['docopt', 'urllib3', 'httplib2', 'apiclient']
 
 setup(
     name='koto',

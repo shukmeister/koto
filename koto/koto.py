@@ -21,7 +21,7 @@ Koto commands:
 	add        Add a new contact (only name is required)
 	delete     Delete a contact
 	status     Show a history of communications with an individual (or all)
-	list 	  List the contacts in your database
+	list 	   List the contacts in your database
 	import     Import a CSV file of new contacts
 	init       Set up koto and change settings
 
@@ -98,8 +98,11 @@ def main():
 		#gmail authentication
 		print("Authenticating gmail connection")
 		success = g.get_credentials()
+
 		if (success):
 			print("Authentication successful")
+		
+		http = credentials.authorize(g.httplib2.Http())
 
 		#database creation
 		db.initializeDB()
