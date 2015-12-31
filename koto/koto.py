@@ -13,7 +13,7 @@ Usage:
 
 Optional arguments:
 	-h, --help   Show help dialog
-	--version    Show verison number
+	--version    Show version number
 	-e, --email  Show emails
 	-t, --time   Show last time contacted
 
@@ -31,7 +31,7 @@ Planned features:
 	Day -> month parser w/ hour support
 '''
 
-# koto - communication tracking utiliity
+# koto - communication tracking utility
 # created by ben shukman
 
 # each name has attributes: last date contacted, each contact is a commit (so its a unique data struct)
@@ -68,7 +68,7 @@ from docopt import docopt
 
 g = gmail_methods
 db = db_methods
-versionNumber = '0.2.0'
+versionNumber = '0.2.2'
 
 
 def idGen(name, date):

@@ -5,13 +5,15 @@ import sys
 db_directory = '/usr/local/Library/Koto'
 db_path = '/usr/local/Library/Koto/kotodb'
 
+
 def firstStartupCheck():
-	#if the database file exists
+	# if the database file exists
 	if os.path.exists(db_path):
-		#it is not the first time running koto
+		# it is not the first time running koto
 		return False
 	else:
 		return True
+
 
 def initializeDB():
 	print ('Initializing database in ' + db_path)
@@ -25,12 +27,14 @@ def initializeDB():
 	print('Database created')
 	conn.close()
 
+
 def initializeSettings():
 	if not os.path.exists('/usr/local/Library/Koto/koto_settings.txt'):
 		file = open('/usr/local/Library/Koto/koto_settings.txt', 'w')
 		file.close()
-	if (os.path.exists('/usr/local/Library/Koto/koto_settings.txt')):
+	if os.path.exists('/usr/local/Library/Koto/koto_settings.txt'):
 		print('Settings file created')
+
 
 def insertDB(firstName, lastName):
 	print ('Inserting ' + firstName + ' ' + lastName + ' into database ' + db_path + '...')
